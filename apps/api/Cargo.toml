@@ -1,0 +1,25 @@
+[package]
+name = "banter-api"
+version = "0.1.0"
+edition = "2021"
+license-file = "LICENSE"
+repository = "https://github.com/sdanialraza/banter"
+rust-version = "1.82.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.7.9"
+dotenv = "0.15.0"
+http-body-util = "0.1.2"
+tokio = { features = ["full"], version = "1.41.1" }
+tower-http = { version = "0.6.1", features = ["cors", "trace"] }
+
+[dev-dependencies]
+tower = { version = "0.5.1", features = ["util"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+strip = true

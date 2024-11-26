@@ -1,0 +1,49 @@
+name: API
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          override: true
+          toolchain: stable
+
+      - name: Install Clippy
+        run: rustup component add clippy
+
+      - name: Install rustfmt
+        run: rustup component add rustfmt
+
+      - name: Format
+        working-directory: apps/api
+        run: cargo fmt -- --check
+
+      - name: Lint
+        working-directory: apps/api
+        run: cargo clippy -- -D warnings
+
+      - name: Test
+        working-directory: apps/api
+        run: cargo test
