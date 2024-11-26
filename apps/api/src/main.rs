@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::{env::var, net::SocketAddr};
 
 use axum::{
     http::{HeaderValue, Method},
@@ -15,9 +15,10 @@ mod routes;
 async fn main() {
     dotenv().ok();
 
-    let ip = env::var("IP").unwrap_or_else(|_| "127.0.0.1".to_string());
-    let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
-    let address = format!("{}:{}", ip, port)
+    let ip = var("IP").unwrap_or("127.0.0.1".to_string());
+    let port = var("PORT").unwrap_or("3000".to_string());
+
+    let address = format!("{ip}:{port}")
         .parse::<SocketAddr>()
         .expect("Invalid IP or Port");
 
@@ -42,27 +43,32 @@ fn app(ip: &str, port: &str) -> Router {
 
 #[cfg(test)]
 mod tests {
+    use std::env::var;
+
     use super::*;
+
     use axum::{
         body::Body,
         http::{Request, StatusCode},
     };
     use dotenv::dotenv;
     use http_body_util::BodyExt;
-    use std::env;
     use tower::ServiceExt;
 
     #[tokio::test]
     async fn hello_world() {
         dotenv().ok();
 
-        let ip = env::var("IP").unwrap_or_else(|_| "127.0.0.1".to_string());
-        let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
-        let app = app(&ip, &port);
-        let request = Request::builder().uri("/").body(Body::empty()).unwrap();
-        let response = app.oneshot(request).await.unwrap();
+        let ip = var("IP").unwrap_or("127.0.0.1".to_string());
+        let port = var("PORT").unwrap_or("3000".to_string());
 
+        let app = app(&ip, &port);
+
+        let request = Request::builder().uri("/").body(Body::empty()).unwrap();
+
+        let response = app.oneshot(request).await.unwrap();
         assert_eq!(response.status(), StatusCode::OK);
+
         let body = response.into_body().collect().await.unwrap().to_bytes();
         assert_eq!(&body[..], b"Hello, world!");
     }
